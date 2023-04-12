@@ -48,6 +48,7 @@ for folder_index in range(len(folders)):
                 batch_file_input.append('cd ..\n')
                 batch_file_input.append('move "{path}/{file}" "{path}/original_videos"\n'.format(path = path, file = filename))
 
+batch_file_input.append("pause\n")
 # write batch file with FFMPEG commands:
 with open("mass-transcode.bat", "w") as batchfile:
     batchfile.writelines(batch_file_input)
