@@ -1,38 +1,56 @@
 import os
 
+video_file_extensions = [".mp4", ".mkv", ".mov", ".webm"]
+# not case sensitive
+
+transcoded_marker = " TRANSCODED"
+# added at the end of filename before extension
+
+output_extension = ".webm"
+# file extension of output transcoded videos
+
+base_command = 'ffmpeg -i "{{input_file}}" -c:v libsvtav1 -c:a libopus -b:a {audio_bitrate}K -g 600 -vf "scale=out_range=full" -svtav1-params "preset={preset}:crf={crf}:matrix-coefficients=bt709:color-range=1:color-primaries=bt709" "{{output_file}}"'
+# format parameters: input_file, audio_bitrate, encoding_speed_preset, crf, output_file
+# double curly brackets around input and output because it allows us to format the string once without those options set first, then set those later
 
 folder_configs = [
-["CRF 0", 'ffmpeg -i "{}" -vcodec libx265 -x265-params "crf=0:range=full" -preset slow -pix_fmt yuv444p -c:a flac -max_muxing_queue_size 9999 -y "{} (HEVC).mkv"'],
-["CRF 2", 'ffmpeg -i "{}" -vcodec libx265 -x265-params "crf=2:range=full" -preset slow -pix_fmt yuv444p -c:a flac -max_muxing_queue_size 9999 -y "{} (HEVC).mkv"'],
-["CRF 4", 'ffmpeg -i "{}" -vcodec libx265 -x265-params "crf=4:range=full" -preset slow -pix_fmt yuv444p -c:a flac -max_muxing_queue_size 9999 -y "{} (HEVC).mkv"'],
-["CRF 6", 'ffmpeg -i "{}" -vcodec libx265 -x265-params "crf=6:range=full" -preset slow -pix_fmt yuv444p -c:a flac -max_muxing_queue_size 9999 -y "{} (HEVC).mkv"'],
-["CRF 8", 'ffmpeg -i "{}" -vcodec libx265 -x265-params "crf=8:range=full" -preset slow -pix_fmt yuv444p -c:a flac -max_muxing_queue_size 9999 -y "{} (HEVC).mkv"'],
-["CRF 10", 'ffmpeg -i "{}" -vcodec libx265 -x265-params "crf=10:range=full" -preset slow -pix_fmt yuv444p -c:a flac -max_muxing_queue_size 9999 -y "{} (HEVC).mkv"'],
-["CRF 12", 'ffmpeg -i "{}" -vcodec libx265 -x265-params "crf=12:range=full" -preset slow -pix_fmt yuv444p -c:a flac -max_muxing_queue_size 9999 -y "{} (HEVC).mkv"'],
-["CRF 14", 'ffmpeg -i "{}" -vcodec libx265 -x265-params "crf=14:range=full" -preset slow -pix_fmt yuv444p -c:a flac -max_muxing_queue_size 9999 -y "{} (HEVC).mkv"'],
-["CRF 16", 'ffmpeg -i "{}" -vcodec libx265 -x265-params "crf=16:range=full" -preset slow -pix_fmt yuv444p -c:a flac -max_muxing_queue_size 9999 -y "{} (HEVC).mkv"'],
-["CRF 18", 'ffmpeg -i "{}" -vcodec libx265 -x265-params "crf=18:range=full" -preset slow -pix_fmt yuv444p -c:a flac -max_muxing_queue_size 9999 -y "{} (HEVC).mkv"'],
-["CRF 20", 'ffmpeg -i "{}" -vcodec libx265 -x265-params "crf=20:range=full" -preset slow -pix_fmt yuv444p -c:a flac -max_muxing_queue_size 9999 -y "{} (HEVC).mkv"'],
-["CRF 22", 'ffmpeg -i "{}" -vcodec libx265 -x265-params "crf=22:range=full" -preset slow -pix_fmt yuv444p -c:a flac -max_muxing_queue_size 9999 -y "{} (HEVC).mkv"'],
-["CRF 24", 'ffmpeg -i "{}" -vcodec libx265 -x265-params "crf=24:range=full" -preset slow -pix_fmt yuv444p -c:a flac -max_muxing_queue_size 9999 -y "{} (HEVC).mkv"'],
-["CRF 26", 'ffmpeg -i "{}" -vcodec libx265 -x265-params "crf=26:range=full" -preset slow -pix_fmt yuv444p -c:a flac -max_muxing_queue_size 9999 -y "{} (HEVC).mkv"'],
-["CRF 28", 'ffmpeg -i "{}" -vcodec libx265 -x265-params "crf=28:range=full" -preset slow -pix_fmt yuv444p -c:a flac -max_muxing_queue_size 9999 -y "{} (HEVC).mkv"'],
-["CRF 30", 'ffmpeg -i "{}" -vcodec libx265 -x265-params "crf=30:range=full" -preset slow -pix_fmt yuv444p -c:a flac -max_muxing_queue_size 9999 -y "{} (HEVC).mkv"'],
-["CRF 32", 'ffmpeg -i "{}" -vcodec libx265 -x265-params "crf=32:range=full" -preset slow -pix_fmt yuv444p -c:a flac -max_muxing_queue_size 9999 -y "{} (HEVC).mkv"'],
-["CRF 34", 'ffmpeg -i "{}" -vcodec libx265 -x265-params "crf=34:range=full" -preset slow -pix_fmt yuv444p -c:a flac -max_muxing_queue_size 9999 -y "{} (HEVC).mkv"'],
-["CRF 36", 'ffmpeg -i "{}" -vcodec libx265 -x265-params "crf=36:range=full" -preset slow -pix_fmt yuv444p -c:a flac -max_muxing_queue_size 9999 -y "{} (HEVC).mkv"'],
-["CRF 38", 'ffmpeg -i "{}" -vcodec libx265 -x265-params "crf=38:range=full" -preset slow -pix_fmt yuv444p -c:a flac -max_muxing_queue_size 9999 -y "{} (HEVC).mkv"']]
-fold_confs = [[i[0] for i in folder_configs], [i[1] for i in folder_configs]]
+["CRF-0 PRESET-6 AUDIORATE-384K", base_command.format(crf = 0, preset = 6, audio_bitrate = 384)],
+["CRF-10 PRESET-6 AUDIORATE-384K", base_command.format(crf = 0, preset = 6, audio_bitrate = 384)],
+["CRF-22 PRESET-6 AUDIORATE-384K", base_command.format(crf = 0, preset = 6, audio_bitrate = 384)],
+["CRF-44 PRESET-6 AUDIORATE-384K", base_command.format(crf = 0, preset = 6, audio_bitrate = 384)],
+["CRF-55 PRESET-6 AUDIORATE-384K", base_command.format(crf = 0, preset = 6, audio_bitrate = 384)],
+["CRF-63 PRESET-6 AUDIORATE-384K", base_command.format(crf = 0, preset = 6, audio_bitrate = 384)]
+]
+folders = [i[0] for i in folder_configs]
+commands = [i[1] for i in folder_configs]
 batch_file_input = list()
 
-with open("video_reencode.bat", "w") as batchfile:
-    for c in range(len(fold_confs[0])):
-        for path, dir, file in os.walk(fold_confs[0][c]):
-            print(str(len(file))+" files")
-            for i in file:
-                if (i.endswith(".mp4") or i.endswith(".mkv") or i.endswith(".MP4") or i.endswith(".MOV")) and i.count("(HEVC)") < 1:
-                    batch_file_input.append('cd "M:/General/Photos & Videos/Transcode/{}"\n'.format(path))
-                    batch_file_input.append(fold_confs[1][c].format(i, i.split(".m")[0]) + "\n")
-                    batch_file_input.append('move "{}" "M:/General/Photos & Videos/Transcode/temp vids\n'.format(i))
+# check if all folders exist. create non-existant folders:
+for folder in folders:
+    if not os.path.exists(folder):
+        os.makedirs(folder)
 
+files_to_transcode = 0
+# look for files to transcode, and create/format their respective commands
+for folder_index in range(len(folders)):
+    for path, _, file in os.walk(folders[folder_index]):
+        for filename in file:
+            if (sum([filename.lower().count(extension) for extension in video_file_extensions]) > 0) and filename.count(transcoded_marker) < 1:
+                # if this file has a valid file extension and isn't marked as already transcoded
+                files_to_transcode += 1
+                batch_file_input.append('cd "{}"\n'.format(path))
+                period_count = filename.count(".")
+                last_start = -1
+                for i in range(period_count):
+                    extension_start_index = filename.find(".", last_start+1)
+                    last_start = extension_start_index
+                batch_file_input.append(commands[folder_index].format(input_file = filename, output_file = filename[0:extension_start_index-1]+transcoded_marker+output_extension) + "\n")
+                batch_file_input.append('cd ..')
+                batch_file_input.append('move "{path}/{file}" "{path}/original_videos\n'.format(path = path, file = filename))
+
+# write batch file with FFMPEG commands:
+with open("mass-transcode.bat", "w") as batchfile:
     batchfile.writelines(batch_file_input)
+
+print("files to transcode: {}".format(files_to_transcode))
+
