@@ -15,11 +15,11 @@ base_command = 'ffmpeg -i "{{input_file}}" -c:v libsvtav1 -c:a libopus -b:a {aud
 
 folder_configs = [
 ["CRF-0 PRESET-6 AUDIORATE-384K", base_command.format(crf = 0, preset = 6, audio_bitrate = 384)],
-["CRF-10 PRESET-6 AUDIORATE-384K", base_command.format(crf = 0, preset = 6, audio_bitrate = 384)],
-["CRF-22 PRESET-6 AUDIORATE-384K", base_command.format(crf = 0, preset = 6, audio_bitrate = 384)],
-["CRF-44 PRESET-6 AUDIORATE-384K", base_command.format(crf = 0, preset = 6, audio_bitrate = 384)],
-["CRF-55 PRESET-6 AUDIORATE-384K", base_command.format(crf = 0, preset = 6, audio_bitrate = 384)],
-["CRF-63 PRESET-6 AUDIORATE-384K", base_command.format(crf = 0, preset = 6, audio_bitrate = 384)]
+["CRF-10 PRESET-6 AUDIORATE-384K", base_command.format(crf = 10, preset = 6, audio_bitrate = 384)],
+["CRF-22 PRESET-6 AUDIORATE-384K", base_command.format(crf = 22, preset = 6, audio_bitrate = 384)],
+["CRF-44 PRESET-6 AUDIORATE-384K", base_command.format(crf = 44, preset = 6, audio_bitrate = 384)],
+["CRF-55 PRESET-6 AUDIORATE-384K", base_command.format(crf = 55, preset = 6, audio_bitrate = 384)],
+["CRF-63 PRESET-6 AUDIORATE-384K", base_command.format(crf = 63, preset = 6, audio_bitrate = 384)]
 ]
 folders = [i[0] for i in folder_configs]
 commands = [i[1] for i in folder_configs]
