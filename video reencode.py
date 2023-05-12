@@ -25,6 +25,8 @@ folders = [i[0] for i in folder_configs]
 commands = [i[1] for i in folder_configs]
 batch_file_input = list()
 
+cwd_path = os.path.abspath(os.getcwd())
+
 # check if all folders exist. create non-existant folders:
 for folder in folders:
     if not os.path.exists(folder):
@@ -42,13 +44,11 @@ for folder_index in range(len(folders)):
                 files_to_transcode += 1
                 batch_file_input.append('cd "{}"\n'.format(path))
                 period_count = filename.count(".")
-                last_start = -1
+                extension_start_index = -1
                 for i in range(period_count):
-                    extension_start_index = filename.find(".", last_start+1)
-                    last_start = extension_start_index
+                    extension_start_index = filename.find(".", extension_start_index+1)
                 batch_file_input.append(commands[folder_index].format(input_file = filename, output_file = filename[0:extension_start_index]+transcoded_marker+output_extension) + "\n")
                 batch_file_input.append('cd ..\n')
-                cwd_path = os.path.abspath(os.getcwd())
                 batch_file_input.append('move "{path}\{file}" "{cwd_path}\original_videos"\n'.format(path = os.path.abspath(path), file = filename, cwd_path = cwd_path))
 
 batch_file_input.append("pause\n")
