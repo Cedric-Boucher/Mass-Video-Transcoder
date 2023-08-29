@@ -1,16 +1,17 @@
 import re
 import os
+from ffmpeg import FFmpeg, Progress, FFmpegError # python-ffmpeg
+from send2trash import send2trash
 
 
-filepath_match_pairs: list[tuple[re.Pattern, str]] = [
-    ("C:\\\\Users\\\\onebi\\\\Documents\\\\GitHub\\\\Mass-Video-Transcoder\\\\regex_testing_folder.*\\.mp4$", 'ffmpeg -i "{input_file}" -c:v libsvtav1 -c:a libopus -b:a 128K -g 600 -vf "scale=out_range=full" -svtav1-params "preset=7:crf=22:matrix-coefficients=bt709:color-range=1:color-primaries=bt709" -y "{output_file}.webm"'),
-    ("K:\\\\Photos Videos\\\\Screen Recordings.*\\.mkv$", 'ffmpeg -i "{input_file}" -c:v libsvtav1 -c:a libopus -b:a 128K -g 600 -vf "scale=out_range=full" -svtav1-params "preset=7:crf=30:matrix-coefficients=bt709:color-range=1:color-primaries=bt709" -y "{output_file}.webm"')
+filepath_match_pairs: list[tuple[re.Pattern, dict, str]] = [
+    ("C:\\\\Users\\\\onebi\\\\Documents\\\\GitHub\\\\Mass-Video-Transcoder\\\\regex_testing_folder.*\\.mp4$", {"vcodec": "libsvtav1", "c:a": "libopus", "b:a": "128K", "g": "600", "vf": "scale=out_range=full", "svtav1-params": "preset=7:crf=40:matrix-coefficients=bt709:color-range=1:color-primaries=bt709"}, ".webm"),
+    ("K:\\\\Photos Videos\\\\Screen Recordings.*\\.mkv$", {"vcodec": "libsvtav1", "c:a": "libopus", "b:a": "128K", "g": "600", "vf": "scale=out_range=full", "svtav1-params": "preset=7:crf=30:matrix-coefficients=bt709:color-range=1:color-primaries=bt709"}, ".webm")
 ]
-# pairs of regular expressions (regex) on the left, ffmpeg command to run on those matching files on the right
+# pairs of regular expressions (regex) on the left, ffmpeg command to run on those matching files on the right, followed by file extension (ex: .webm)
 # any one file will run the first command that it gets matched to with regex, even if multiples pairs would have matched
 
 operations: list[str] = list() # list of complete FFMPEG commands
-batch_file_input: list[str] = list() # list of batch file commands, FFMPEG commands and others
 
 # convert regex strings to re.Pattern objects
 i = -1
@@ -45,21 +46,26 @@ for path_to_search in paths_to_search:
                     output_filepath = os.path.abspath(output_folderpath+"/"+output_filename)
 
                     # create the command by inserting the filepaths
-                    operation = match_pair[1].format(input_file = filepath, output_file = output_filepath)
+                    operation = match_pair[1]
                     operations.append(operation)
-                    print(operation)
+                    extension = match_pair[2]
+                    output_filepath += extension
+                    print("input: {}\noutput: {}\noptions: {}\n".format(filepath, output_filepath, operation))
                     # add the command to the list of batch file commands
-                    batch_file_input.append("{}\n".format(operation))
-                    batch_file_input.append('del "{filepath}"\n'.format(filepath = filepath))
+                    ffmpeg = FFmpeg()
+                    ffmpeg.option("y")
+                    ffmpeg.input(filepath)
+                    ffmpeg.output(output_filepath, operation)
+                    try:
+                        ffmpeg.execute()
+                    except FFmpegError:
+                        # transcode had at least one error, aborting
+                        print("transcode failed!\n")
+                        break
+
+                    #send2trash(filepath) # delete original once transcode has successfully completed
 
                     break # don't compare this file to any more regex
 
-
-batch_file_input.append("pause\n")
-
-# write batch file with FFMPEG commands
-with open("mass-transcode.bat", "w") as batchfile:
-    batchfile.writelines(batch_file_input)
-
-print("files to transcode: {}".format(len(operations)))
+print("files transcoded: {}".format(len(operations)))
 
