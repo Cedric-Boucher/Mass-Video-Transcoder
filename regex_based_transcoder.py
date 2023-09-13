@@ -10,6 +10,7 @@ filepath_match_pairs: list[tuple[re.Pattern, dict, str]] = [
 ]
 # pairs of regular expressions (regex) on the left, ffmpeg command to run on those matching files on the right, followed by file extension (ex: .webm)
 # any one file will run the first command that it gets matched to with regex, even if multiples pairs would have matched
+# it is expected that your output file specification will not be overwriting your input file specification
 
 operations: list[str] = list() # list of complete FFMPEG commands
 
