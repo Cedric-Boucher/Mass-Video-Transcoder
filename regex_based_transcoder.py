@@ -49,7 +49,10 @@ for path_to_search in paths_to_search:
                     operation = match_pair[1]
                     operations.append(operation)
                     extension = match_pair[2]
+                    output_filepath_in_progress = output_filepath
+                    output_filepath_in_progress += "in_progress"
                     output_filepath += extension
+                    output_filepath_in_progress += extension
                     print("input: {}\noutput: {}\noptions: {}\n".format(filepath, output_filepath, operation))
                     # add the command to the list of batch file commands
                     ffmpeg = FFmpeg()
@@ -62,6 +65,8 @@ for path_to_search in paths_to_search:
                         # transcode had at least one error, aborting
                         print("transcode failed!\n")
                         break
+
+                    os.rename(output_filepath_in_progress, output_filepath)
 
                     #send2trash(filepath) # delete original once transcode has successfully completed
 
