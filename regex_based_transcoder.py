@@ -62,12 +62,13 @@ for path_to_search in paths_to_search:
                     ffmpeg.output(output_filepath, operation)
                     try:
                         ffmpeg.execute()
+                        os.rename(output_filepath_in_progress, output_filepath) # remove "_in_progress" once file is done being created
                     except FFmpegError:
                         # transcode had at least one error, aborting
                         print("transcode failed!\n")
+                        # does not try to delete potential broken output file
                         break
 
-                    os.rename(output_filepath_in_progress, output_filepath)
 
                     #send2trash(filepath) # delete original once transcode has successfully completed
 
