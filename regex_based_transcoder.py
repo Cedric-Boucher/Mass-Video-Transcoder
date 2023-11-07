@@ -70,15 +70,18 @@ for path_to_search in paths_to_search:
                     ffmpeg.option("y")
                     ffmpeg.input(filepath)
                     ffmpeg.output(output_filepath_in_progress, operation)
-                    try:
-                        if not DRY_RUN:
+                    if not DRY_RUN:
+                        try:
                             ffmpeg.execute()
                             os.rename(output_filepath_in_progress, output_filepath) # remove "_in_progress" once file is done being created
-                    except FFmpegError:
-                        # transcode had at least one error, aborting
-                        print("transcode failed!\n")
-                        # does not try to delete potential broken output file
-                        break
+                        except FFmpegError:
+                            # transcode had at least one error, aborting
+                            print("transcode failed!\n")
+                            # does not try to delete potential broken output file
+                            break
+                        except FileExistsError:
+                            send2trash(output_filepath) # delete existing file before renaming to fix name conflict
+                            os.rename(output_filepath_in_progress, output_filepath)
 
 
                     #send2trash(filepath) # delete original once transcode has successfully completed
