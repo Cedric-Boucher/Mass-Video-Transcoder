@@ -4,9 +4,19 @@ from ffmpeg import FFmpeg, Progress, FFmpegError # python-ffmpeg
 from send2trash import send2trash
 
 
+DRY_RUN = False # if True, runs without affecting any files
+
 filepath_match_pairs: list[tuple[re.Pattern, dict, str]] = [
-    ("C:\\\\Users\\\\onebi\\\\Documents\\\\GitHub\\\\Mass-Video-Transcoder\\\\regex_testing_folder.*\\.mp4$", {"vcodec": "libsvtav1", "c:a": "libopus", "b:a": "128K", "g": "600", "vf": "scale=out_range=full", "svtav1-params": "preset=7:crf=40:matrix-coefficients=bt709:color-range=1:color-primaries=bt709"}, ".webm"),
-    ("K:\\\\Photos Videos\\\\Screen Recordings.*\\.mkv$", {"vcodec": "libsvtav1", "c:a": "libopus", "b:a": "128K", "g": "600", "vf": "scale=out_range=full", "svtav1-params": "preset=7:crf=30:matrix-coefficients=bt709:color-range=1:color-primaries=bt709"}, ".webm")
+    (
+        "C:\\\\Users\\\\onebi\\\\Documents\\\\GitHub\\\\Mass-Video-Transcoder\\\\regex_testing_folder.*\\.mp4$",
+        {"vcodec": "libsvtav1", "c:a": "libopus", "b:a": "128K", "g": "600", "vf": "scale=out_range=full", "svtav1-params": "preset=9:crf=40:matrix-coefficients=bt709:color-range=1:color-primaries=bt709"},
+        ".webm"
+    ),
+    (
+        "K:\\\\Unbacked up\\\\Screen Recordings.*\\.*8.mkv$",
+        {"vcodec": "libsvtav1", "c:a": "libopus", "b:a": "128K", "g": "600", "vf": "scale=out_range=full", "svtav1-params": "preset=9:crf=40:matrix-coefficients=bt709:color-range=1:color-primaries=bt709"},
+        ".webm"
+    )
 ]
 # pairs of regular expressions (regex) on the left, ffmpeg command to run on those matching files on the right, followed by file extension (ex: .webm)
 # any one file will run the first command that it gets matched to with regex, even if multiples pairs would have matched
@@ -20,11 +30,11 @@ for match_pair in filepath_match_pairs:
     i += 1
     match_pair = list(match_pair) # convert to list to make it mutable
     match_pair[0] = re.compile(match_pair[0])
-    filepath_match_pairs[i] = match_pair # overwrite the tuple that was there since tupes are immutable
+    filepath_match_pairs[i] = match_pair # overwrite the tuple that was there since tuples are immutable
 
 paths_to_search: tuple[str] = (
     "C:\\Users\\onebi\\Documents\\GitHub\\Mass-Video-Transcoder\\regex_testing_folder",
-    "K:\\Photos Videos\\Screen Recordings"
+    "K:\\Unbacked up\\Screen Recordings"
 )
 # only folders (and all their subfolders) in here will be searched for regex matches
 
@@ -59,10 +69,11 @@ for path_to_search in paths_to_search:
                     ffmpeg = FFmpeg()
                     ffmpeg.option("y")
                     ffmpeg.input(filepath)
-                    ffmpeg.output(output_filepath, operation)
+                    ffmpeg.output(output_filepath_in_progress, operation)
                     try:
-                        ffmpeg.execute()
-                        os.rename(output_filepath_in_progress, output_filepath) # remove "_in_progress" once file is done being created
+                        if not DRY_RUN:
+                            ffmpeg.execute()
+                            os.rename(output_filepath_in_progress, output_filepath) # remove "_in_progress" once file is done being created
                     except FFmpegError:
                         # transcode had at least one error, aborting
                         print("transcode failed!\n")
