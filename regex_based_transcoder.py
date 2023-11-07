@@ -1,6 +1,8 @@
 import re
 import os
-from ffmpeg import FFmpeg, Progress, FFmpegError # python-ffmpeg
+import asyncio
+from ffmpeg import Progress, FFmpegError # python-ffmpeg
+from ffmpeg.asyncio import FFmpeg
 from send2trash import send2trash
 
 
@@ -38,6 +40,16 @@ paths_to_search: tuple[str] = (
 )
 # only folders (and all their subfolders) in here will be searched for regex matches
 
+last_progress_string_length = 0
+async def run_ffmpeg(ffmpeg: FFmpeg):
+    @ffmpeg.on("progress")
+    def print_progress(progress: Progress):
+        global last_progress_string_length
+        print(" "*last_progress_string_length+"\r"+str(progress)+"\r", end="")
+        last_progress_string_length = len(str(progress))
+    await ffmpeg.execute()
+    print("\n")
+
 
 for path_to_search in paths_to_search:
     for folderpath, _, filenames in os.walk(path_to_search):
@@ -72,7 +84,7 @@ for path_to_search in paths_to_search:
                     ffmpeg.output(output_filepath_in_progress, operation)
                     if not DRY_RUN:
                         try:
-                            ffmpeg.execute()
+                            asyncio.run(run_ffmpeg(ffmpeg))
                             os.rename(output_filepath_in_progress, output_filepath) # remove "_in_progress" once file is done being created
                         except FFmpegError:
                             # transcode had at least one error, aborting
@@ -90,3 +102,4 @@ for path_to_search in paths_to_search:
 
 print("files transcoded: {}".format(len(operations)))
 
+# FIXME print progress during transcode
