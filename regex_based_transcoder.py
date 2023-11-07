@@ -101,5 +101,3 @@ for path_to_search in paths_to_search:
                     break # don't compare this file to any more regex
 
 print("files transcoded: {}".format(len(operations)))
-
-# FIXME print progress during transcode
