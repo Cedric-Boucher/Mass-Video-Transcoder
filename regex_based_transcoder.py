@@ -9,14 +9,19 @@ from send2trash import send2trash
 DRY_RUN = False # if True, runs without affecting any files
 
 filepath_match_pairs: list[tuple[re.Pattern, dict, str]] = [
+    #(
+    #    "C:\\\\Users\\\\onebi\\\\Documents\\\\GitHub\\\\Mass-Video-Transcoder\\\\regex_testing_folder.*\\.mp4$",
+    #    {"vcodec": "libsvtav1", "c:a": "libopus", "b:a": "128K", "g": "600", "vf": "scale=out_range=full", "svtav1-params": "preset=12:crf=63:matrix-coefficients=bt709:color-range=1:color-primaries=bt709"},
+    #    ".webm"
+    #),
     (
-        "C:\\\\Users\\\\onebi\\\\Documents\\\\GitHub\\\\Mass-Video-Transcoder\\\\regex_testing_folder.*\\.mp4$",
-        {"vcodec": "libsvtav1", "c:a": "libopus", "b:a": "128K", "g": "600", "vf": "scale=out_range=full", "svtav1-params": "preset=9:crf=40:matrix-coefficients=bt709:color-range=1:color-primaries=bt709"},
+        "K:\\\\Unbacked up\\\\Screen Recordings.*\\\\Celeste.*\\.mkv$",
+        {"vcodec": "libsvtav1", "c:a": "libopus", "b:a": "256K", "g": "600", "vf": "scale=out_range=full", "svtav1-params": "preset=6:crf=20:matrix-coefficients=bt709:color-range=1:color-primaries=bt709"},
         ".webm"
     ),
     (
-        "K:\\\\Unbacked up\\\\Screen Recordings.*\\.*8.mkv$",
-        {"vcodec": "libsvtav1", "c:a": "libopus", "b:a": "128K", "g": "600", "vf": "scale=out_range=full", "svtav1-params": "preset=9:crf=40:matrix-coefficients=bt709:color-range=1:color-primaries=bt709"},
+        "K:\\\\Unbacked up\\\\Screen Recordings.*\\\\The Entropy Centre.*\\.mkv$",
+        {"vcodec": "libsvtav1", "c:a": "libopus", "b:a": "256K", "g": "600", "vf": "scale=out_range=full", "svtav1-params": "preset=6:crf=20:matrix-coefficients=bt709:color-range=1:color-primaries=bt709"},
         ".webm"
     )
 ]
