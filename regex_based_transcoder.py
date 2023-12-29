@@ -91,6 +91,12 @@ for path_to_search in paths_to_search:
                         try:
                             asyncio.run(run_ffmpeg(ffmpeg))
                             os.rename(output_filepath_in_progress, output_filepath) # remove "_in_progress" once file is done being created
+                            size_original: int = os.path.getsize(filepath)
+                            size_output: int = os.path.getsize(output_filepath)
+                            print("""
+                                  Original Size: {:d} MB
+                                  Output Size:   {:d} MB"""
+                                  .format(size_original/1000000, size_output/1000000))
                         except FFmpegError:
                             # transcode had at least one error, aborting
                             print("transcode failed!\n")
@@ -101,7 +107,7 @@ for path_to_search in paths_to_search:
                             os.rename(output_filepath_in_progress, output_filepath)
 
 
-                    #send2trash(filepath) # delete original once transcode has successfully completed
+                    send2trash(filepath) # delete original once transcode has successfully completed
 
                     break # don't compare this file to any more regex
 
