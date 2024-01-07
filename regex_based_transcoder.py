@@ -9,14 +9,14 @@ from send2trash import send2trash
 DRY_RUN = False # if True, runs without affecting any files
 
 filepath_match_pairs: list[tuple[re.Pattern, dict, str]] = [
-    #(
-    #    "C:\\\\Users\\\\onebi\\\\Documents\\\\GitHub\\\\Mass-Video-Transcoder\\\\regex_testing_folder.*\\.mp4$",
-    #    {"vcodec": "libsvtav1", "c:a": "libopus", "b:a": "128K", "g": "600", "vf": "scale=out_range=full", "svtav1-params": "preset=12:crf=63:matrix-coefficients=bt709:color-range=1:color-primaries=bt709"},
-    #    ".webm"
-    #),
+    (
+        "C:\\\\Users\\\\onebi\\\\Documents\\\\GitHub\\\\Mass-Video-Transcoder\\\\regex_testing_folder.*\\.mp4$",
+        {"vcodec": "libsvtav1", "c:a": "libopus", "b:a": "128K", "g": "600", "vf": "scale=out_range=full", "svtav1-params": "preset=12:crf=63:matrix-coefficients=bt709:color-range=1:color-primaries=bt709"},
+        ".webm"
+    ),
     (
         "K:\\\\Unbacked up\\\\Screen Recordings.*\\\\Celeste.*\\.mkv$",
-        {"vcodec": "libsvtav1", "c:a": "libopus", "b:a": "256K", "g": "600", "vf": "scale=out_range=full", "svtav1-params": "preset=6:crf=20:matrix-coefficients=bt709:color-range=1:color-primaries=bt709"},
+        {"vcodec": "libsvtav1", "c:a": "libopus", "b:a": "256K", "g": "600", "vf": "scale=out_range=full", "svtav1-params": "preset=6:crf=30:matrix-coefficients=bt709:color-range=1:color-primaries=bt709"},
         ".webm"
     ),
     (
@@ -90,13 +90,11 @@ for path_to_search in paths_to_search:
                     if not DRY_RUN:
                         try:
                             asyncio.run(run_ffmpeg(ffmpeg))
-                            os.rename(output_filepath_in_progress, output_filepath) # remove "_in_progress" once file is done being created
                             size_original: int = os.path.getsize(filepath)
-                            size_output: int = os.path.getsize(output_filepath)
-                            print("""
-                                  Original Size: {:d} MB
-                                  Output Size:   {:d} MB"""
+                            size_output: int = os.path.getsize(output_filepath_in_progress)
+                            print("Original Size: {:.0f} MB\nOutput Size:   {:.0f} MB\n"
                                   .format(size_original/1000000, size_output/1000000))
+                            os.rename(output_filepath_in_progress, output_filepath) # remove "_in_progress" once file is done being created
                         except FFmpegError:
                             # transcode had at least one error, aborting
                             print("transcode failed!\n")
