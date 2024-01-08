@@ -23,6 +23,11 @@ filepath_match_pairs: list[tuple[re.Pattern, dict, str]] = [
         "K:\\\\Unbacked up\\\\Screen Recordings.*\\\\The Entropy Centre.*\\.mkv$",
         {"vcodec": "libsvtav1", "c:a": "libopus", "b:a": "256K", "g": "600", "vf": "scale=out_range=full", "svtav1-params": "preset=6:crf=30:matrix-coefficients=bt709:color-range=1:color-primaries=bt709"},
         ".webm"
+    ),
+    (
+        "K:\\\\Unbacked up\\\\Screen Recordings.*\\\\Mini Motorways.*\\.mkv$",
+        {"vcodec": "libsvtav1", "c:a": "libopus", "b:a": "256K", "g": "600", "vf": "scale=out_range=full", "svtav1-params": "preset=6:crf=30:matrix-coefficients=bt709:color-range=1:color-primaries=bt709"},
+        ".webm"
     )
 ]
 # pairs of regular expressions (regex) on the left, ffmpeg command to run on those matching files on the right, followed by file extension (ex: .webm)
