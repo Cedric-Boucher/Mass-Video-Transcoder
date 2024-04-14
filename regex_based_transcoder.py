@@ -16,7 +16,7 @@ filepath_match_pairs: list[tuple[str, dict[str, str], str]] = [
     #    ".webm"
     #),
     (
-        "K:\\\\Photos Videos\\\\Video game recordings\\\\Minecraft\\\\Fall 2022.*\\\\Minecraft Fall 2022.*\\.webm$",
+        "K:\\\\Photos Videos\\\\Video game recordings\\\\Minecraft\\\\Fall 2022.*\\\\Minecraft Fall 2022 [0-9]*\\.webm$",
         {"vcodec": "libsvtav1", "c:a": "libopus", "b:a": "96K", "g": "600", "vf": "scale=out_range=full", "svtav1-params": "preset=5:crf=55:matrix-coefficients=bt709:color-range=1:color-primaries=bt709"},
         " retranscoded.webm"
     ),
@@ -88,13 +88,15 @@ async def run_ffmpeg(ffmpeg: FFmpeg):
     @ffmpeg.on("progress")
     def print_progress(progress: Progress):
         global last_progress_string_length
-        progress_string: str = "Progress:    "
-        progress_string += "<<< {fps:4.1f} FPS,    "
-        progress_string += "{frame_num:8d} Frames,    "
-        progress_string += "{size_MB:7.3f} MB,    "
-        progress_string += "{bitrate_Mbps:4.3f} Mb/s,    "
-        progress_string += "{speed_x:4.3f} x Video Speed,    "
-        progress_string += "{time:s} Video Time >>>\r"
+        progress_string: str = (
+            "Progress:    "
+            + "<<< {fps:4.1f} FPS,    "
+            + "{frame_num:8d} Frames,    "
+            + "{size_MB:7.3f} MB,    "
+            + "{bitrate_Mbps:4.3f} Mb/s,    "
+            + "{speed_x:4.3f} x Video Speed,    "
+            + "{time:s} Video Time >>>\r"
+        )
         progress_string = progress_string.format(
             fps = progress.fps,
             frame_num = progress.frame,
@@ -139,10 +141,12 @@ for path_to_search in paths_to_search:
                     output_filepath += extension
                     output_filepath_in_progress += extension
                     # add the command to the list of batch file commands
-                    ffmpeg = FFmpeg()
-                    ffmpeg.option("y")
-                    ffmpeg.input(filepath)
-                    ffmpeg.output(output_filepath_in_progress, operation) # type: ignore
+                    ffmpeg = (
+                        FFmpeg()
+                        .option("y")
+                        .input(filepath)
+                        .output(output_filepath_in_progress, operation) # type: ignore
+                    )
                     logger.append("Found Match on File: \"{}\"".format(filepath), True)
                     logger.append("Running Operation: {}".format(operation), True)
                     logger.append("Outputting to File: \"{}\"".format(output_filepath_in_progress), True)
