@@ -8,140 +8,7 @@ import win32_setctime
 import datetime
 from logger import Logger
 import cv2
-
-
-DRY_RUN = False # if True, runs without affecting any files
-
-filepath_match_pairs: list[tuple[str, dict[str, str], str]] = [ # TODO move to config file
-    #(
-    #    "C:\\\\Users\\\\onebi\\\\Documents\\\\GitHub\\\\Mass-Video-Transcoder\\\\regex_testing_folder.*\\.mp4$",
-    #    {"vcodec": "libsvtav1", "c:a": "libopus", "b:a": "128K", "g": "600", "vf": "scale=out_range=full", "svtav1-params": "preset=12:crf=63:matrix-coefficients=bt709:color-range=1:color-primaries=bt709"},
-    #    ".webm"
-    #),
-    (
-        "K:\\\\Photos Videos\\\\Video game recordings\\\\Minecraft\\\\Fall 2022.*\\\\Minecraft Fall 2022 [0-9]*\\.mkv$",
-        {"vcodec": "libsvtav1", "c:a": "libopus", "b:a": "96K", "g": "600", "vf": "scale=out_range=full", "svtav1-params": "preset=5:crf=55:matrix-coefficients=bt709:color-range=1:color-primaries=bt709"},
-        " retranscoded.webm"
-    ),
-    (
-        "K:\\\\Photos Videos\\\\Video game recordings\\\\Beat Saber\\\\.*\\.mp4$",
-        {"vcodec": "libsvtav1", "c:a": "libopus", "b:a": "128K", "g": "600", "vf": "scale=out_range=full", "svtav1-params": "preset=5:crf=50:matrix-coefficients=bt709:color-range=1:color-primaries=bt709"},
-        ".webm"
-    ),
-    (
-        "K:\\\\Photos Videos\\\\Video game recordings\\\\Rocket League\\\\.*\\.mkv$",
-        {"vcodec": "libsvtav1", "c:a": "libopus", "b:a": "96K", "g": "600", "vf": "scale=out_range=full", "svtav1-params": "preset=5:crf=63:matrix-coefficients=bt709:color-range=1:color-primaries=bt709"},
-        ".webm"
-    ),
-    (
-        "K:\\\\Unbacked up\\\\Screen Recordings.*\\\\Celeste.*\\.mkv$",
-        {"vcodec": "libsvtav1", "c:a": "libopus", "b:a": "96K", "g": "1200", "vf": "scale=out_range=full", "svtav1-params": "preset=5:crf=55:matrix-coefficients=bt709:color-range=1:color-primaries=bt709"},
-        ".webm"
-    ),
-    (
-        "K:\\\\Unbacked up\\\\Screen Recordings.*\\\\Pokemon Emerald.*\\.mkv$",
-        {"vcodec": "libsvtav1", "c:a": "libopus", "b:a": "32K", "g": "1200", "vf": "scale=out_range=full", "map": "0", "svtav1-params": "preset=5:crf=55:matrix-coefficients=bt709:color-range=1:color-primaries=bt709"},
-        ".webm"
-    ),
-    #(
-    #    "K:\\\\Photos Videos\\\\Video game recordings.*\\\\Celeste.*\\.webm$",
-    #    {"vcodec": "libsvtav1", "c:a": "libopus", "b:a": "96K", "g": "1200", "vf": "scale=out_range=full", "svtav1-params": "preset=5:crf=55:matrix-coefficients=bt709:color-range=1:color-primaries=bt709"},
-    #    "retranscoded.webm"
-    #),
-    #(
-    #    "K:\\\\Unbacked up\\\\Screen Recordings.*\\\\The Entropy Centre.*\\.mkv$",
-    #    {"vcodec": "libsvtav1", "c:a": "libopus", "b:a": "256K", "g": "600", "vf": "scale=out_range=full", "svtav1-params": "preset=5:crf=30:matrix-coefficients=bt709:color-range=1:color-primaries=bt709"},
-    #    ".webm"
-    #),
-    (
-        "K:\\\\Unbacked up\\\\Screen Recordings.*\\\\Dirt Rally 2.0.*\\.mkv$",
-        {"vcodec": "libsvtav1", "c:a": "libopus", "b:a": "128K", "g": "600", "vf": "scale=out_range=full", "svtav1-params": "preset=6:crf=55:matrix-coefficients=bt709:color-range=1:color-primaries=bt709"},
-        ".webm"
-    ),
-    #(
-    #    "K:\\\\Photos Videos\\\\Video game recordings\\\\The Entropy Centre\\\\.*\\.webm$",
-    #    {"vcodec": "libsvtav1", "c:a": "libopus", "b:a": "96K", "g": "1200", "vf": "scale=out_range=full", "svtav1-params": "preset=5:crf=55:matrix-coefficients=bt709:color-range=1:color-primaries=bt709"},
-    #    " retranscoded.webm"
-    #),
-    (
-        "K:\\\\Unbacked up\\\\Screen Recordings.*\\\\Mini Motorways.*\\.mkv$",
-        {"vcodec": "libsvtav1", "c:a": "libopus", "b:a": "64K", "g": "1200", "vf": "scale=out_range=full", "svtav1-params": "preset=5:crf=55:matrix-coefficients=bt709:color-range=1:color-primaries=bt709"},
-        ".webm"
-    ),
-    (
-        "K:\\\\Photos Videos\\\\Video game recordings\\\\Mini Motorways\\\\.*\\.mkv$",
-        {"vcodec": "libsvtav1", "c:a": "libopus", "b:a": "64K", "g": "1200", "vf": "scale=out_range=full", "svtav1-params": "preset=5:crf=50:matrix-coefficients=bt709:color-range=1:color-primaries=bt709"},
-        ".webm"
-    ),
-    (
-        "K:\\\\Photos Videos\\\\Video game recordings.*\\\\Flight Simulator.*\\.mkv$",
-        {"vcodec": "libsvtav1", "c:a": "libopus", "b:a": "64K", "g": "1200", "vf": "scale=out_range=full", "svtav1-params": "preset=5:crf=55:matrix-coefficients=bt709:color-range=1:color-primaries=bt709"},
-        ".webm"
-    ),
-    (
-        "K:\\\\Photos Videos\\\\Video game recordings.*\\\\Hollow Knight.*\\.mp4$",
-        {"vcodec": "libsvtav1", "c:a": "libopus", "b:a": "96K", "g": "1200", "vf": "scale=out_range=full", "svtav1-params": "preset=5:crf=55:matrix-coefficients=bt709:color-range=1:color-primaries=bt709"},
-        ".webm"
-    ),
-    (
-        "K:\\\\Photos Videos\\\\Video game recordings\\\\Genshin\\\\.*\\.mkv$",
-        {"vcodec": "libsvtav1", "c:a": "libopus", "b:a": "48K", "g": "1200", "vf": "scale=out_range=full", "svtav1-params": "preset=5:crf=63:matrix-coefficients=bt709:color-range=1:color-primaries=bt709"},
-        ".webm"
-    ),
-    (
-        "K:\\\\Photos Videos\\\\Video game recordings\\\\Breath of the Wild\\\\.*\\.mkv$",
-        {"vcodec": "libsvtav1", "c:a": "libopus", "b:a": "64K", "g": "1200", "vf": "scale=out_range=full", "svtav1-params": "preset=5:crf=55:matrix-coefficients=bt709:color-range=1:color-primaries=bt709"},
-        ".webm"
-    ),
-    (
-        "K:\\\\Photos Videos\\\\Video game recordings\\\\Ori and the Will of the Wisps\\\\.*\\.wkv$",
-        {"vcodec": "libsvtav1", "c:a": "libopus", "b:a": "64K", "g": "1200", "vf": "scale=out_range=full", "svtav1-params": "preset=5:crf=55:matrix-coefficients=bt709:color-range=1:color-primaries=bt709"},
-        ".webm"
-    ),
-    #( # OP6T videos
-    #    "K:\\\\Unbacked up\\\\Screen Recordings.*\\\\mass transcoder\\\\VID_[0-9]*_[0-9]*.*\\.mp4$",
-    #    {"vcodec": "libsvtav1", "c:a": "libopus", "b:a": "192K", "g": "600", "vf": "scale=out_range=full", "svtav1-params": "preset=5:crf=20:matrix-coefficients=bt709:color-range=1:color-primaries=bt709"},
-    #    ".webm"
-    #),
-    #( # OP6T videos
-    #    "K:\\\\Unbacked up\\\\Screen Recordings.*\\\\mass transcoder\\\\OP6T_VID_[0-9]*_[0-9]*.*\\.mp4$",
-    #    {"vcodec": "libsvtav1", "c:a": "libopus", "b:a": "192K", "g": "600", "vf": "scale=out_range=full", "svtav1-params": "preset=5:crf=20:matrix-coefficients=bt709:color-range=1:color-primaries=bt709"},
-    #    ".webm"
-    #),
-    ( # OP6T videos
-        "K:\\\\Elodie_import\\\\OP6T_VID_[0-9]*_[0-9]*.*\\.mp4$",
-        {"vcodec": "libsvtav1", "c:a": "libopus", "b:a": "96K", "g": "600", "vf": "scale=out_range=full", "svtav1-params": "preset=5:crf=20:matrix-coefficients=bt709:color-range=1:color-primaries=bt709"},
-        ".webm"
-    ),
-    ( # older OP6T videos # TODO bring to 1080p first?
-        "K:\\\\Elodie_import\\\\VID_[0-9]*_[0-9]*.*\\.mp4$",
-        {"vcodec": "libsvtav1", "c:a": "libopus", "b:a": "96K", "g": "600", "vf": "scale=out_range=full", "svtav1-params": "preset=5:crf=40:matrix-coefficients=bt709:color-range=1:color-primaries=bt709"},
-        ".webm"
-    ),
-    #( # Linda's Pixel 2 XL videos # TODO bring to 1080p if larger first
-    #    "K:\\\\Elodie_import\\\\PXL_[0-9]*_[0-9]*.*\\.mp4$",
-    #    {"vcodec": "libsvtav1", "c:a": "libopus", "b:a": "64K", "g": "600", "vf": "scale=out_range=full", "svtav1-params": "preset=5:crf=30:matrix-coefficients=bt709:color-range=1:color-primaries=bt709"},
-    #    ".webm"
-    #),
-    ( # DSLR videos
-        "K:\\\\Elodie_import\\\\MVI_[0-9]*\\.MOV$",
-        {"vcodec": "libsvtav1", "c:a": "libopus", "b:a": "64K", "g": "600", "vf": "scale=out_range=full", "svtav1-params": "preset=5:crf=20:matrix-coefficients=bt709:color-range=1:color-primaries=bt709"},
-        ".webm"
-    ),
-    #( # phone screen recordings
-    #    "K:\\\\Unbacked up\\\\Screen Recordings.*\\\\mass transcoder\\\\[0-9][0-9]-[0-9][0-9]-[0-9][0-9]-[0-9][0-9]-[0-9][0-9]-[0-9][0-9].*\\.mp4$",
-    #    {"vcodec": "libsvtav1", "c:a": "libopus", "b:a": "192K", "g": "600", "vf": "scale=out_range=full", "svtav1-params": "preset=5:crf=30:matrix-coefficients=bt709:color-range=1:color-primaries=bt709"},
-    #    ".webm"
-    #),
-    (
-        "K:\\\\Unbacked up\\\\Screen Recordings\\\\MakeMKV\\\\.*\\.mkv$",
-        {"vcodec": "libsvtav1", "c:a": "libopus", "b:a": "64K", "g": "600", "map": "0", "preset": "4", "crf": "20"},
-        ".webm"
-    ),
-]
-# pairs of regular expressions (regex) on the left, ffmpeg command to run on those matching files on the right, followed by file extension (ex: .webm)
-# any one file will run the first command that it gets matched to with regex, even if multiples pairs would have matched
-# it is expected that your output file specification will not be overwriting your input file specification
+import config
 
 operations: list[dict[str, str]] = list() # list of complete FFMPEG commands
 logger = Logger("regex_based_transcoder.log")
@@ -150,18 +17,10 @@ logger.append("Program Start")
 
 # convert regex strings to re.Pattern objects
 filepath_match_pairs_processed: list[tuple[re.Pattern, dict[str, str], str]] = []
-for match_pair in filepath_match_pairs:
+for match_pair in config.FILEPATH_MATCH_PAIRS:
     re_compiled: re.Pattern = re.compile(match_pair[0])
     match_pair_re: tuple[re.Pattern, dict, str] = (re_compiled, match_pair[1], match_pair[2])
     filepath_match_pairs_processed.append(match_pair_re)
-
-paths_to_search: tuple[str, ...] = (
-    "C:\\Users\\onebi\\Documents\\GitHub\\Mass-Video-Transcoder\\regex_testing_folder",
-    "K:\\Unbacked up\\Screen Recordings",
-    "K:\\Photos Videos\\Video game recordings",
-    "K:\\Elodie_import"
-)
-# only folders (and all their subfolders) in here will be searched for regex matches
 
 def get_video_frame_count(filename) -> int:
     video = cv2.VideoCapture(filename)
@@ -210,7 +69,7 @@ async def run_ffmpeg(ffmpeg: FFmpeg, filepath: str):
 total_size_original = 0
 total_size_output = 0
 
-for path_to_search in paths_to_search:
+for path_to_search in config.PATHS_TO_SEARCH:
     for folderpath, _, filenames in os.walk(path_to_search):
         filepaths = tuple([os.path.abspath(folderpath+"/"+filename) for filename in filenames]) # convert to absolute filepaths
         for filepath in filepaths:
@@ -220,19 +79,21 @@ for path_to_search in paths_to_search:
                 if match:
                     logger.append("\n\n--------------------------------------------------", True)
                     # get full output filepath and remove file extension from filename as it is determined by transcode
+                    output_folderpath: str
+                    output_filename: str
                     output_folderpath, output_filename = os.path.split(filepath)
-                    period_count = output_filename.count(".")
+                    period_count: int = output_filename.count(".")
                     extension_start_index = -1
                     for i in range(period_count):
-                        extension_start_index = output_filename.find(".", extension_start_index+1)
-                    output_filename = output_filename[0:extension_start_index]
-                    output_filepath = os.path.abspath(output_folderpath+"/"+output_filename)
+                        extension_start_index: int = output_filename.find(".", extension_start_index+1)
+                    output_filename: str = output_filename[0:extension_start_index]
+                    output_filepath: str = os.path.abspath(output_folderpath+"/"+output_filename)
 
                     # create the command by inserting the filepaths
-                    operation = match_pair[1]
+                    operation: dict[str, str] = match_pair[1]
                     operations.append(operation)
-                    extension = match_pair[2]
-                    output_filepath_in_progress = output_filepath
+                    extension: str = match_pair[2]
+                    output_filepath_in_progress: str = output_filepath
                     output_filepath_in_progress += "_in_progress"
                     output_filepath += extension
                     output_filepath_in_progress += extension
@@ -246,7 +107,7 @@ for path_to_search in paths_to_search:
                     logger.append("Found Match on File: \"{}\"".format(filepath), True)
                     logger.append("Running Operation: {}".format(operation), True)
                     logger.append("Outputting to File: \"{}\"".format(output_filepath_in_progress), True)
-                    if not DRY_RUN:
+                    if not config.DRY_RUN:
                         try:
                             asyncio.run(run_ffmpeg(ffmpeg, filepath))
                             size_original: int = os.path.getsize(filepath)
@@ -295,6 +156,7 @@ for path_to_search in paths_to_search:
 
                     print("--------------------------------------------------\n")
                     break # don't compare this file to any more regex
+
 logger.append("Program Finish")
 print("files transcoded: {}".format(len(operations)))
 if (total_size_original != 0):
