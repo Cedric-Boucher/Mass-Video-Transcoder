@@ -12,7 +12,7 @@ import cv2
 
 DRY_RUN = False # if True, runs without affecting any files
 
-filepath_match_pairs: list[tuple[str, dict[str, str], str]] = [
+filepath_match_pairs: list[tuple[str, dict[str, str], str]] = [ # TODO move to config file
     #(
     #    "C:\\\\Users\\\\onebi\\\\Documents\\\\GitHub\\\\Mass-Video-Transcoder\\\\regex_testing_folder.*\\.mp4$",
     #    {"vcodec": "libsvtav1", "c:a": "libopus", "b:a": "128K", "g": "600", "vf": "scale=out_range=full", "svtav1-params": "preset=12:crf=63:matrix-coefficients=bt709:color-range=1:color-primaries=bt709"},
@@ -40,8 +40,8 @@ filepath_match_pairs: list[tuple[str, dict[str, str], str]] = [
     ),
     (
         "K:\\\\Unbacked up\\\\Screen Recordings.*\\\\Pokemon Emerald.*\\.mkv$",
-        {"vcodec": "libsvtav1", "c:a": "libopus", "b:a": "32K", "g": "1200", "vf": "scale=out_range=full", "svtav1-params": "preset=5:crf=0:matrix-coefficients=bt709:color-range=1:color-primaries=bt709"},
-        "lossless.webm"
+        {"vcodec": "libsvtav1", "c:a": "libopus", "b:a": "32K", "g": "1200", "vf": "scale=out_range=full", "map": "0", "svtav1-params": "preset=5:crf=55:matrix-coefficients=bt709:color-range=1:color-primaries=bt709"},
+        ".webm"
     ),
     #(
     #    "K:\\\\Photos Videos\\\\Video game recordings.*\\\\Celeste.*\\.webm$",
@@ -132,7 +132,12 @@ filepath_match_pairs: list[tuple[str, dict[str, str], str]] = [
     #    "K:\\\\Unbacked up\\\\Screen Recordings.*\\\\mass transcoder\\\\[0-9][0-9]-[0-9][0-9]-[0-9][0-9]-[0-9][0-9]-[0-9][0-9]-[0-9][0-9].*\\.mp4$",
     #    {"vcodec": "libsvtav1", "c:a": "libopus", "b:a": "192K", "g": "600", "vf": "scale=out_range=full", "svtav1-params": "preset=5:crf=30:matrix-coefficients=bt709:color-range=1:color-primaries=bt709"},
     #    ".webm"
-    #)
+    #),
+    (
+        "K:\\\\Unbacked up\\\\Screen Recordings\\\\MakeMKV\\\\.*\\.mkv$",
+        {"vcodec": "libsvtav1", "c:a": "libopus", "b:a": "64K", "g": "600", "map": "0", "preset": "4", "crf": "20"},
+        ".webm"
+    ),
 ]
 # pairs of regular expressions (regex) on the left, ffmpeg command to run on those matching files on the right, followed by file extension (ex: .webm)
 # any one file will run the first command that it gets matched to with regex, even if multiples pairs would have matched
@@ -160,7 +165,7 @@ paths_to_search: tuple[str, ...] = (
 
 def get_video_frame_count(filename) -> int:
     video = cv2.VideoCapture(filename)
-    frame_count: int = video.get(cv2.CAP_PROP_FRAME_COUNT)
+    frame_count: int = int(video.get(cv2.CAP_PROP_FRAME_COUNT))
     assert (frame_count > 0)
     return frame_count
 
@@ -253,11 +258,12 @@ for path_to_search in paths_to_search:
                             logger.append("Size reduced from {:.0f}MB to {:.0f}MB -> {:.2f}%, saving {:.0f}MB".format(size_original/1000000, size_output/1000000, size_fraction, (size_original-size_output)/1000000), True)
                             logger.append("Renaming File to: \"{}\"".format(output_filepath))
                             os.rename(output_filepath_in_progress, output_filepath) # remove "_in_progress" once file is done being created
-                        except FFmpegError:
+                        except FFmpegError as e:
                             # transcode had at least one error, aborting
-                            print("transcode failed!\n")
-                            logger.append("Transcode Failed")
-                            # does not try to delete potential broken output file
+                            print("transcode failed... {}: {}\n".format(type(e).__name__, str(e)))
+                            logger.append("Transcode Failed - {}: {}".format(type(e).__name__, str(e)))
+                            send2trash(output_filepath) # delete failed output
+                            logger.append("Deleted Failed Output File")
                             break
                         except FileExistsError:
                             logger.append("Rename Failed: File Already Existed. Deleting Conflicting File")
@@ -265,6 +271,9 @@ for path_to_search in paths_to_search:
                             logger.append("File Deleted, Retrying Rename")
                             os.rename(output_filepath_in_progress, output_filepath)
                             logger.append("Rename Success")
+                        except PermissionError:
+                            logger.append("Rename Failed: File Was In Use / Did Not Have Permission To Rename")
+                            break
                         # change the output file's creation and modification time to match original file
                         creation_time_original: float = os.path.getctime(filepath)
                         modification_time_original: float = os.path.getmtime(filepath)
